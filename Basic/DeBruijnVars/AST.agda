@@ -41,7 +41,7 @@ data St (n : ℕ) : Set where
   while_do_     : Exp n bool → St n → St n
 
 -- (total) semantics of expressions
-⟦_⟧ᵉ : ∀ {n t} (e : Exp n t) → State n → ⟦ t ⟧ᵗ
+⟦_⟧ᵉ : ∀ {n t} → Exp n t → State n → ⟦ t ⟧ᵗ
 ⟦ lit x   ⟧ᵉ s = x
 ⟦ add a b ⟧ᵉ s = ⟦ a ⟧ᵉ s + ⟦ b ⟧ᵉ s
 ⟦ mul a b ⟧ᵉ s = ⟦ a ⟧ᵉ s * ⟦ b ⟧ᵉ s

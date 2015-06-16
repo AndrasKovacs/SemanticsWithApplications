@@ -25,8 +25,6 @@ Small≡Big {n} = to , from ∘ proj₂
   to (while-false x)     = , while ∷ if-false x ∷ skip stop
 
   mutual
-    -- This version avoids well-foundedness complications that arise with SmallStep.seq-split.
-    -- And I believe it's also more elegant than the proof in the book.
     prepend : 
       ∀ {s₁ s₂ s₃}{S₁ S₂ : St n}
       → ⟨ S₁ , s₁ ⟩⟶⟨ S₂ , s₂ ⟩
