@@ -164,40 +164,39 @@ data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n �
 -- Determinism
 ------------------------------------------------------------
 
--- ▷-deterministic : 
---   ∀ {n}{c c' c'' e e' e''}{s s' s'' : State n} 
---   → ⟨ c , e , s ⟩▷⟨ c' , e' , s' ⟩ → ⟨ c , e , s ⟩▷⟨ c'' , e'' , s'' ⟩
---   → (c' ≡ c'') × (e' ≡ e'') × (s' ≡ s'')
--- ▷-deterministic (PUSH n₁) (PUSH .n₁)  = refl , refl , refl
--- ▷-deterministic (ADD a b) (ADD .a .b) = refl , refl , refl
--- ▷-deterministic (MUL a b) (MUL .a .b) = refl , refl , refl
--- ▷-deterministic (SUB a b) (SUB .a .b) = refl , refl , refl
--- ▷-deterministic TRUE      TRUE        = refl , refl , refl
--- ▷-deterministic FALSE     FALSE       = refl , refl , refl
--- ▷-deterministic (EQ a b)  (EQ .a .b)  = refl , refl , refl
--- ▷-deterministic (LT a b)  (LT .a .b)  = refl , refl , refl
--- ▷-deterministic (LTE a b) (LTE .a .b) = refl , refl , refl
--- ▷-deterministic (AND a b) (AND .a .b) = refl , refl , refl
--- ▷-deterministic (NOT b)   (NOT .b)    = refl , refl , refl
--- ▷-deterministic (FETCH x) (FETCH .x)  = refl , refl , refl
--- ▷-deterministic (STORE x) (STORE .x)  = refl , refl , refl
--- ▷-deterministic BRANCH    BRANCH      = refl , refl , refl
--- ▷-deterministic NOOP      NOOP        = refl , refl , refl
--- ▷-deterministic LOOP      LOOP        = refl , refl , refl
+▷-deterministic : 
+  ∀ {n}{c c' c'' e e' e''}{s s' s'' : State n} 
+  → ⟨ c , e , s ⟩▷⟨ c' , e' , s' ⟩ → ⟨ c , e , s ⟩▷⟨ c'' , e'' , s'' ⟩
+  → (c' ≡ c'') × (e' ≡ e'') × (s' ≡ s'')
+▷-deterministic (PUSH n₁) (PUSH .n₁)  = refl , refl , refl
+▷-deterministic (ADD a b) (ADD .a .b) = refl , refl , refl
+▷-deterministic (MUL a b) (MUL .a .b) = refl , refl , refl
+▷-deterministic (SUB a b) (SUB .a .b) = refl , refl , refl
+▷-deterministic TRUE      TRUE        = refl , refl , refl
+▷-deterministic FALSE     FALSE       = refl , refl , refl
+▷-deterministic (EQ a b)  (EQ .a .b)  = refl , refl , refl
+▷-deterministic (LT a b)  (LT .a .b)  = refl , refl , refl
+▷-deterministic (LTE a b) (LTE .a .b) = refl , refl , refl
+▷-deterministic (AND a b) (AND .a .b) = refl , refl , refl
+▷-deterministic (NOT b)   (NOT .b)    = refl , refl , refl
+▷-deterministic (FETCH x) (FETCH .x)  = refl , refl , refl
+▷-deterministic (STORE x) (STORE .x)  = refl , refl , refl
+▷-deterministic BRANCH    BRANCH      = refl , refl , refl
+▷-deterministic NOOP      NOOP        = refl , refl , refl
+▷-deterministic LOOP      LOOP        = refl , refl , refl
 
 ▷*-deterministic :
   ∀ {n}{c c' c'' e e' e''}{s s' s'' : State n}
   → ⟨ c , e , s ⟩▷*⟨ c' , e' , s' ⟩ → ⟨ c , e , s ⟩▷*⟨ c'' , e'' , s'' ⟩
   → (c' ≡ c'') × (e' ≡ e'') × (s' ≡ s'')
-▷*-deterministic = {!!}
--- ▷*-deterministic done done = refl , refl , refl
--- ▷*-deterministic done (() ∷ p2)
--- ▷*-deterministic (stuck x) (stuck x₁) = refl , refl , refl
--- ▷*-deterministic (stuck x) (x₁ ∷ p2) = ⊥-elim (x _ _ _ x₁)
--- ▷*-deterministic (() ∷ p1) done
--- ▷*-deterministic (x ∷ p1) (stuck x₁) = ⊥-elim (x₁ _ _ _ x)
--- ▷*-deterministic (x ∷ p1) (x₁ ∷ p2) with ▷-deterministic x x₁
--- ... | eq1 , eq2 , eq3 rewrite eq1 | eq2 | eq3 = ▷*-deterministic p1 p2
+▷*-deterministic done done = refl , refl , refl
+▷*-deterministic done (() ∷ p2)
+▷*-deterministic (stuck x) (stuck x₁) = refl , refl , refl
+▷*-deterministic (stuck x) (x₁ ∷ p2) = ⊥-elim (x _ _ _ x₁)
+▷*-deterministic (() ∷ p1) done
+▷*-deterministic (x ∷ p1) (stuck x₁) = ⊥-elim (x₁ _ _ _ x)
+▷*-deterministic (x ∷ p1) (x₁ ∷ p2) with ▷-deterministic x x₁
+... | eq1 , eq2 , eq3 rewrite eq1 | eq2 | eq3 = ▷*-deterministic p1 p2
 
 
 -- Compilation 
@@ -232,25 +231,24 @@ weaken-step-code :
   ∀ {n}{c c' c'' e e'}{s s' : State n}
   → ⟨ c        , e , s ⟩▷⟨ c'        , e' , s' ⟩
   → ⟨ c <> c'' , e , s ⟩▷⟨ c' <> c'' , e' , s' ⟩
-weaken-step-code = {!!}
--- weaken-step-code (PUSH n₁) = PUSH n₁
--- weaken-step-code (ADD a b) = ADD a b
--- weaken-step-code (MUL a b) = MUL a b
--- weaken-step-code (SUB a b) = SUB a b
--- weaken-step-code TRUE      = TRUE
--- weaken-step-code FALSE     = FALSE
--- weaken-step-code (EQ a b)  = EQ a b
--- weaken-step-code (LT a b)  = LT a b
--- weaken-step-code (LTE a b) = LTE a b
--- weaken-step-code (AND a b) = AND a b
--- weaken-step-code (NOT b)   = NOT b
--- weaken-step-code (FETCH x) = FETCH x
--- weaken-step-code (STORE x) = STORE x
--- weaken-step-code {c'' = c''}(BRANCH {c₁}{c₂}{c}{t})
---   rewrite LM.assoc (ifBool t then c₁ else c₂) c c'' = BRANCH
--- weaken-step-code {c'' = c''}(LOOP {c₁}{c₂}{c}) 
---   rewrite LM.assoc c₁ (BRANCH (c₂ ∷ʳ LOOP c₁ c₂) (NOOP ∷ []) ∷ c) c'' = LOOP
--- weaken-step-code NOOP = NOOP
+weaken-step-code (PUSH n₁) = PUSH n₁
+weaken-step-code (ADD a b) = ADD a b
+weaken-step-code (MUL a b) = MUL a b
+weaken-step-code (SUB a b) = SUB a b
+weaken-step-code TRUE      = TRUE
+weaken-step-code FALSE     = FALSE
+weaken-step-code (EQ a b)  = EQ a b
+weaken-step-code (LT a b)  = LT a b
+weaken-step-code (LTE a b) = LTE a b
+weaken-step-code (AND a b) = AND a b
+weaken-step-code (NOT b)   = NOT b
+weaken-step-code (FETCH x) = FETCH x
+weaken-step-code (STORE x) = STORE x
+weaken-step-code {c'' = c''}(BRANCH {c₁}{c₂}{c}{t})
+  rewrite LM.assoc (ifBool t then c₁ else c₂) c c'' = BRANCH
+weaken-step-code {c'' = c''}(LOOP {c₁}{c₂}{c}) 
+  rewrite LM.assoc c₁ (BRANCH (c₂ ∷ʳ LOOP c₁ c₂) (NOOP ∷ []) ∷ c) c'' = LOOP
+weaken-step-code NOOP = NOOP
 
 infixr 5 _▷*<>_
 _▷*<>_ :
@@ -291,29 +289,29 @@ BRANCH-[] {n}{c₁}{c₂}{e}{t}{s} =
     (proj₂ LM.identity (ifBool t then c₁ else c₂))
     BRANCH
 
--- 𝓒-correct-to :
---   ∀ {n}{S : St n}{s s'} 
---   → ⟨ S , s ⟩⟱ s' → ⟨ 𝓒⟦ S ⟧ˢ , [] , s ⟩▷*⟨ [] , [] , s' ⟩
+𝓒-correct-to :
+  ∀ {n}{S : St n}{s s'} 
+  → ⟨ S , s ⟩⟱ s' → ⟨ 𝓒⟦ S ⟧ˢ , [] , s ⟩▷*⟨ [] , [] , s' ⟩
 
--- 𝓒-correct-to (ass {_}{x}{a}) = 𝓒-Exp-nat a ▷*<> STORE x ∷ done
--- 𝓒-correct-to skip = NOOP ∷ done
--- 𝓒-correct-to (a , b) = 𝓒-correct-to a ▷*<> 𝓒-correct-to b
+𝓒-correct-to (ass {_}{x}{a}) = 𝓒-Exp-nat a ▷*<> STORE x ∷ done
+𝓒-correct-to skip = NOOP ∷ done
+𝓒-correct-to (a , b) = 𝓒-correct-to a ▷*<> 𝓒-correct-to b
 
--- 𝓒-correct-to (if-true {s = s}{b = b} x p) with 𝓒-Exp-bool {e = []}{s = s} b
--- ... | condition rewrite T→≡true x = 
---   condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p
+𝓒-correct-to (if-true {s = s}{b = b} x p) with 𝓒-Exp-bool {e = []}{s = s} b
+... | condition rewrite T→≡true x = 
+  condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p
 
--- 𝓒-correct-to (if-false {s = s}{b = b} x p) with 𝓒-Exp-bool {e = []}{s = s} b
--- ... | condition rewrite F→≡false x = 
---   condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p
+𝓒-correct-to (if-false {s = s}{b = b} x p) with 𝓒-Exp-bool {e = []}{s = s} b
+... | condition rewrite F→≡false x = 
+  condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p
 
--- 𝓒-correct-to (while-true {s}{b = b} x p k) with 𝓒-Exp-bool {e = []}{s = s} b
--- ... | condition rewrite T→≡true x = 
---   LOOP ∷ condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p ▷*<> 𝓒-correct-to k
+𝓒-correct-to (while-true {s}{b = b} x p k) with 𝓒-Exp-bool {e = []}{s = s} b
+... | condition rewrite T→≡true x = 
+  LOOP ∷ condition ▷*<> BRANCH-[] ∷ 𝓒-correct-to p ▷*<> 𝓒-correct-to k
 
--- 𝓒-correct-to (while-false {s}{S}{b} x) with 𝓒-Exp-bool {e = []}{s = s} b
--- ... | condition rewrite F→≡false x = 
---   LOOP ∷ condition ▷*<> BRANCH-[] ∷ NOOP ∷ done
+𝓒-correct-to (while-false {s}{S}{b} x) with 𝓒-Exp-bool {e = []}{s = s} b
+... | condition rewrite F→≡false x = 
+  LOOP ∷ condition ▷*<> BRANCH-[] ∷ NOOP ∷ done
 
 
 ▷*-split : 
@@ -322,90 +320,90 @@ BRANCH-[] {n}{c₁}{c₂}{e}{t}{s} =
   → ∃₂ λ s'' e''  
   → ⟨ c₁ , e  , s    ⟩▷*⟨ [] , e'' , s'' ⟩ ×
     ⟨ c₂ , e'' , s'' ⟩▷*⟨ [] , e'  , s'  ⟩
-▷*-split = {!!}
--- ▷*-split [] p = _ , _ , done , p
--- ▷*-split (._ ∷ c₁) (PUSH n₁ ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , PUSH n₁ ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (ADD a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , ADD a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (MUL a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , MUL a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (SUB a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , SUB a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (TRUE ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , TRUE ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (FALSE ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , FALSE ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (EQ a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , EQ a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (LT a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , LT a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (LTE a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , LTE a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (AND a b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , AND a b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (NOT b ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , NOT b ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (FETCH x ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , FETCH x ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (STORE x ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , STORE x ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) {c₂} (BRANCH{ca}{cb}{._}{true}{e}{s} ∷ p)
---   rewrite sym $ LM.assoc ca c₁ c₂ with ▷*-split (ca <> c₁) p
--- ... | _ , _ , p1 , p2 = _ , _ , BRANCH ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) {c₂} (BRANCH{ca}{cb}{._}{false}{e}{s} ∷ p)
---   rewrite sym $ LM.assoc cb c₁ c₂ with ▷*-split (cb <> c₁) p
--- ... | _ , _ , p1 , p2 = _ , _ , BRANCH ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) (NOOP ∷ p) with ▷*-split c₁ p
--- ... | _ , _ , p1 , p2 = _ , _ , NOOP ∷ p1 , p2
--- ▷*-split (._ ∷ c₁) {c₂}(LOOP{ca}{cb}{._}{e}{s} ∷ p) 
---   rewrite sym $ LM.assoc ca (BRANCH (cb ∷ʳ LOOP ca cb) (NOOP ∷ []) ∷ c₁) c₂
---   with ▷*-split (ca <> (BRANCH (cb ∷ʳ LOOP ca cb) (NOOP ∷ []) ∷ c₁)) p
--- ... | _ , _ , p1 , p2 = _ , _ , LOOP ∷ p1 , p2
+▷*-split [] p = _ , _ , done , p
+▷*-split (._ ∷ c₁) (PUSH n₁ ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , PUSH n₁ ∷ p1 , p2
+▷*-split (._ ∷ c₁) (ADD a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , ADD a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (MUL a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , MUL a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (SUB a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , SUB a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (TRUE ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , TRUE ∷ p1 , p2
+▷*-split (._ ∷ c₁) (FALSE ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , FALSE ∷ p1 , p2
+▷*-split (._ ∷ c₁) (EQ a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , EQ a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (LT a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , LT a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (LTE a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , LTE a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (AND a b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , AND a b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (NOT b ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , NOT b ∷ p1 , p2
+▷*-split (._ ∷ c₁) (FETCH x ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , FETCH x ∷ p1 , p2
+▷*-split (._ ∷ c₁) (STORE x ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , STORE x ∷ p1 , p2
+▷*-split (._ ∷ c₁) {c₂} (BRANCH{ca}{cb}{._}{true}{e}{s} ∷ p)
+  rewrite sym $ LM.assoc ca c₁ c₂ with ▷*-split (ca <> c₁) p
+... | _ , _ , p1 , p2 = _ , _ , BRANCH ∷ p1 , p2
+▷*-split (._ ∷ c₁) {c₂} (BRANCH{ca}{cb}{._}{false}{e}{s} ∷ p)
+  rewrite sym $ LM.assoc cb c₁ c₂ with ▷*-split (cb <> c₁) p
+... | _ , _ , p1 , p2 = _ , _ , BRANCH ∷ p1 , p2
+▷*-split (._ ∷ c₁) (NOOP ∷ p) with ▷*-split c₁ p
+... | _ , _ , p1 , p2 = _ , _ , NOOP ∷ p1 , p2
+▷*-split (._ ∷ c₁) {c₂}(LOOP{ca}{cb}{._}{e}{s} ∷ p) 
+  rewrite sym $ LM.assoc ca (BRANCH (cb ∷ʳ LOOP ca cb) (NOOP ∷ []) ∷ c₁) c₂
+  with ▷*-split (ca <> (BRANCH (cb ∷ʳ LOOP ca cb) (NOOP ∷ []) ∷ c₁)) p
+... | _ , _ , p1 , p2 = _ , _ , LOOP ∷ p1 , p2
 
 
 -- Well founded recursion needed on while-true !!!
 
+{-# TERMINATING #-}
 𝓒-correct-from : 
   ∀ {n}{S : St n}{e s s'} 
   → ⟨ 𝓒⟦ S ⟧ˢ , [] , s ⟩▷*⟨ [] , e , s' ⟩ → (⟨ S , s ⟩⟱ s') × e ≡ []
 
--- -- Assignment
--- 𝓒-correct-from {_}{x := exp}{e}{s} p with 𝓒-Exp-nat {e = []}{s = s} exp | ▷*-split 𝓒⟦ exp ⟧ᵉ p
--- 𝓒-correct-from {n} {.x := exp} p | exp' | s₁ , ._ , p1 , STORE x ∷ () ∷ p2 
--- 𝓒-correct-from {n} {.x := exp} p | exp' | s₁ , ._ , p1 , STORE x ∷ done with ▷*-deterministic exp' p1
--- ... | _ , eqe , eqs rewrite eqs with ∷-injective eqe
--- ... | eqn , eqe' rewrite sym $ nat-inj eqn = ass , sym eqe'
+-- Assignment
+𝓒-correct-from {_}{x := exp}{e}{s} p with 𝓒-Exp-nat {e = []}{s = s} exp | ▷*-split 𝓒⟦ exp ⟧ᵉ p
+𝓒-correct-from {n} {.x := exp} p | exp' | s₁ , ._ , p1 , STORE x ∷ () ∷ p2 
+𝓒-correct-from {n} {.x := exp} p | exp' | s₁ , ._ , p1 , STORE x ∷ done with ▷*-deterministic exp' p1
+... | _ , eqe , eqs rewrite eqs with ∷-injective eqe
+... | eqn , eqe' rewrite sym $ nat-inj eqn = ass , sym eqe'
 
--- -- Skip
--- 𝓒-correct-from {S = skip} (NOOP ∷ done) = skip , refl
--- 𝓒-correct-from {S = skip} (NOOP ∷ () ∷ _)
+-- Skip
+𝓒-correct-from {S = skip} (NOOP ∷ done) = skip , refl
+𝓒-correct-from {S = skip} (NOOP ∷ () ∷ _)
 
--- -- Composition
--- 𝓒-correct-from {S = S , S₁} p with ▷*-split 𝓒⟦ S ⟧ˢ p
--- ... | s'' , e'' , p1 , p2 with 𝓒-correct-from {S = S} p1 
--- ... | p1' , eqe'' rewrite eqe'' with 𝓒-correct-from {S = S₁} p2
--- ... | p2' , eqe = (p1' , p2') , eqe
+-- Composition
+𝓒-correct-from {S = S , S₁} p with ▷*-split 𝓒⟦ S ⟧ˢ p
+... | s'' , e'' , p1 , p2 with 𝓒-correct-from {S = S} p1 
+... | p1' , eqe'' rewrite eqe'' with 𝓒-correct-from {S = S₁} p2
+... | p2' , eqe = (p1' , p2') , eqe
 
--- -- If-then-else
--- 𝓒-correct-from {S = if b then S else S₁}{e}{s}{s'} p with 𝓒-Exp-bool {e = []}{s = s} b | ▷*-split 𝓒⟦ b ⟧ᵉ p
--- ... | b' | s'' , [] , p1 , () ∷ p2
--- ... | b' | s'' , nat x ∷ e'' , p1 , () ∷ p2
--- ... | b' | s'' , bool x ∷ e' , p1 , BRANCH ∷ p2 with ▷*-deterministic b' p1
--- ... | _ , eqe , eqs rewrite sym eqs with ∷-injective eqe
--- ... | eq-cond , []≡e' 
---   rewrite sym $ bool-inj eq-cond | sym []≡e' with ⟦ b ⟧ᵉ s | inspect ⟦ b ⟧ᵉ s
+-- If-then-else
+𝓒-correct-from {S = if b then S else S₁}{e}{s}{s'} p with 𝓒-Exp-bool {e = []}{s = s} b | ▷*-split 𝓒⟦ b ⟧ᵉ p
+... | b' | s'' , [] , p1 , () ∷ p2
+... | b' | s'' , nat x ∷ e'' , p1 , () ∷ p2
+... | b' | s'' , bool x ∷ e' , p1 , BRANCH ∷ p2 with ▷*-deterministic b' p1
+... | _ , eqe , eqs rewrite sym eqs with ∷-injective eqe
+... | eq-cond , []≡e' 
+  rewrite sym $ bool-inj eq-cond | sym []≡e' with ⟦ b ⟧ᵉ s | inspect ⟦ b ⟧ᵉ s
 
--- ... | true  | [ condTrue ] rewrite proj₂ LM.identity 𝓒⟦ S ⟧ˢ 
---   = if-true (≡true→T condTrue) (proj₁ rest) , proj₂ rest 
---   where rest = 𝓒-correct-from {S = S} p2
+... | true  | [ condTrue ] rewrite proj₂ LM.identity 𝓒⟦ S ⟧ˢ 
+  = if-true (≡true→T condTrue) (proj₁ rest) , proj₂ rest 
+  where rest = 𝓒-correct-from {S = S} p2
 
--- ... | false | [ condFalse ] rewrite proj₂ LM.identity 𝓒⟦ S₁ ⟧ˢ 
---   = if-false (≡false→F condFalse) (proj₁ rest) , proj₂ rest 
---   where rest = 𝓒-correct-from {S = S₁} p2
+... | false | [ condFalse ] rewrite proj₂ LM.identity 𝓒⟦ S₁ ⟧ˢ 
+  = if-false (≡false→F condFalse) (proj₁ rest) , proj₂ rest 
+  where rest = 𝓒-correct-from {S = S₁} p2
   
 
--- while
+-- While
 𝓒-correct-from {S = while b do S}{e}{s}{s'} (LOOP ∷ p) 
   with 𝓒-Exp-bool {e = []}{s = s} b | ▷*-split 𝓒⟦ b ⟧ᵉ p
 ... | b' | s'' , ._ , p1 , BRANCH ∷ p2 with ▷*-deterministic b' p1
@@ -415,28 +413,25 @@ BRANCH-[] {n}{c₁}{c₂}{e}{t}{s} =
   | sym []≡e' 
   | proj₂ LM.identity (ifBool ⟦ b ⟧ᵉ s then 𝓒⟦ S ⟧ˢ ++ LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ S ⟧ˢ ∷ [] else (NOOP ∷ []))
     with ⟦ b ⟧ᵉ s | inspect ⟦ b ⟧ᵉ s
-... | true  | [ condTrue ]  = {!!}
-... | false | [ condFalse ] = {!!} , {!!}
 
-𝓒-while-false : 
-
-
-
-
-
--- ... | cond  | [ condTrue  ] = {!!}
-
-
-
-
--- catchall
-𝓒-correct-from {S = S} p = {!!}
-
-
-
--- 𝓒⟦_⟧ˢ : ∀ {n} → St n → Code n
--- 𝓒⟦ x := e                 ⟧ˢ = 𝓒⟦ e ⟧ᵉ ∷ʳ STORE x
--- 𝓒⟦ skip                   ⟧ˢ = NOOP ∷ []
--- 𝓒⟦ s₁ , s₂                ⟧ˢ = 𝓒⟦ s₁ ⟧ˢ <> 𝓒⟦ s₂ ⟧ˢ
--- 𝓒⟦ if b then st₁ else st₂ ⟧ˢ = 𝓒⟦ b ⟧ᵉ ∷ʳ BRANCH 𝓒⟦ st₁ ⟧ˢ 𝓒⟦ st₂ ⟧ˢ
--- 𝓒⟦ while b do st          ⟧ˢ = LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ st ⟧ˢ ∷ []
+... | true  | [ condTrue ] = 𝓒-while-true condTrue p2
+  where
+    𝓒-while-true :
+      ∀ {n}{s s' : State n}{b e S}
+      → ⟦ b ⟧ᵉ s ≡ true
+      → ⟨ 𝓒⟦ S ⟧ˢ ++ LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ S ⟧ˢ ∷ [] , [] , s ⟩▷*⟨ [] , e , s' ⟩
+      → (⟨ while b do S , s ⟩⟱ s') × e ≡ []
+    𝓒-while-true {_}{s}{s'}{b}{e}{S} condTrue p with ▷*-split 𝓒⟦ S ⟧ˢ p
+    ... | s'' , e'' , p1 , p2 with 𝓒-correct-from {S = S} p1
+    ... | p1' , e''≡[] rewrite e''≡[] with 𝓒-correct-from {S = while b do S} p2  -- DAMNIT!!
+    ... | p2' , e≡[] = (while-true (≡true→T condTrue) p1' p2') , e≡[]
+      
+... | false | [ condFalse ] = 𝓒-while-false condFalse p2
+  where
+    𝓒-while-false : 
+      ∀ {n}{s s' : State n}{e b S}
+      → ⟦ b ⟧ᵉ s ≡ false
+      → ⟨ NOOP ∷ [] , [] , s ⟩▷*⟨ [] , e , s' ⟩ 
+      → (⟨ while b do S , s ⟩⟱ s' × e ≡ [])
+    𝓒-while-false f (NOOP ∷ done) = (while-false (≡false→F f)) , refl
+    𝓒-while-false f (NOOP ∷ () ∷ p)
