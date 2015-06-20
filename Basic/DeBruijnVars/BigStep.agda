@@ -183,32 +183,34 @@ private
 
 -- Correctness of factorial program
 
-⟦fac⟧ : ℕ → ℕ
-⟦fac⟧ zero    = 1
-⟦fac⟧ (suc n) = suc n * ⟦fac⟧ n
-
-fac-loop : St 3
-fac-loop =
-  while lt (var (# 1)) (var (# 0)) do
-      (# 1 := add (lit 1) (var (# 1)) ,
-       # 2 := mul (var (# 1)) (var (# 2)) )
-
-fac : St 3
-fac =
-  # 1 := lit 0 ,
-  # 2 := lit 1 ,
-  fac-loop 
-
-fac-loop-ok :
-  ∀ d i 
-  → ⟨ fac-loop , d + i ∷ i ∷ ⟦fac⟧ i ∷ [] ⟩⟱ (d + i ∷ d + i ∷ ⟦fac⟧ (d + i) ∷ [])
-fac-loop-ok zero i = while-false (¬A→FalseA $ a≮a i )
-fac-loop-ok (suc d) i with fac-loop-ok d (suc i)
-... | next rewrite +-suc d i = while-true (A→TrueA $ a<sb+a i d) (ass , ass) next
-
-fac-ok :
-  ∀ n {i acc} → ⟨ fac , n ∷ i ∷ acc ∷ [] ⟩⟱ (n ∷ n ∷ ⟦fac⟧ n ∷ [])
-fac-ok n with fac-loop-ok n 0
-... | loop-ok rewrite +-comm n 0 = ass , ass , loop-ok
+private
+  
+  ⟦fac⟧ : ℕ → ℕ
+  ⟦fac⟧ zero    = 1
+  ⟦fac⟧ (suc n) = suc n * ⟦fac⟧ n
+  
+  fac-loop : St 3
+  fac-loop =
+    while lt (var (# 1)) (var (# 0)) do
+        (# 1 := add (lit 1) (var (# 1)) ,
+         # 2 := mul (var (# 1)) (var (# 2)) )
+  
+  fac : St 3
+  fac =
+    # 1 := lit 0 ,
+    # 2 := lit 1 ,
+    fac-loop 
+  
+  fac-loop-ok :
+    ∀ d i 
+    → ⟨ fac-loop , d + i ∷ i ∷ ⟦fac⟧ i ∷ [] ⟩⟱ (d + i ∷ d + i ∷ ⟦fac⟧ (d + i) ∷ [])
+  fac-loop-ok zero i = while-false (¬A→FalseA $ a≮a i )
+  fac-loop-ok (suc d) i with fac-loop-ok d (suc i)
+  ... | next rewrite +-suc d i = while-true (A→TrueA $ a<sb+a i d) (ass , ass) next
+  
+  fac-ok :
+    ∀ n {i acc} → ⟨ fac , n ∷ i ∷ acc ∷ [] ⟩⟱ (n ∷ n ∷ ⟦fac⟧ n ∷ [])
+  fac-ok n with fac-loop-ok n 0
+  ... | loop-ok rewrite +-comm n 0 = ass , ass , loop-ok
 
 
