@@ -1,21 +1,14 @@
 
-module Basic.DeBruijnVars.Axiomatic where
+module Basic.DeBruijnVars.Axiomatic.Partial where
  
-import Data.Bool as Bool using (not)
 open import Data.Bool hiding (not; if_then_else_; _∧_)
-open import Data.Empty
-open import Data.Fin using (Fin; suc; zero; #_)
-open import Data.Nat 
-open import Data.Nat.Properties.Simple
 open import Data.Vec hiding ([_]; _++_; split)
 open import Function
-open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Product
 import Level as L
 
 open import Utils.Decidable
-open import Utils.NatOrdLemmas
 open import Basic.DeBruijnVars.AST     
 open import Basic.DeBruijnVars.BigStep
 
@@ -32,7 +25,9 @@ _==>_ :
   → (A → Set β)
   → (A → Set γ)
   → Set _
-_==>_ f g = ∀ {x} → f x → g x      
+_==>_ f g = ∀ {x} → f x → g x     
+ 
+
 
 infixr 4 _,_
 data 〈_〉_〈_〉 {n} : (State n → Set) → St n → (State n → Set) → Set₁ where
@@ -67,10 +62,13 @@ data 〈_〉_〈_〉 {n} : (State n → Set) → St n → (State n → Set) → 
       〈 P 〉 while b do S 〈 (F ∘ ⟦ b ⟧ᵉ) ∧ P 〉 
 
   cons : 
-                ∀ {P P' Q Q' S} → 
+                ∀ {P' Q' P Q S} → 
       P ==> P' → 〈 P' 〉 S 〈 Q' 〉 → Q' ==> Q 
     → -----------------------------------------
                  〈 P 〉 S 〈 Q 〉 
+
+
+-- Annotate current 
 
 
 
@@ -136,41 +134,12 @@ complete (S , S₁){P}{Q} f =
 complete (if b then S else S₁){P}{Q} f = 
   if (complete S {(T ∘ ⟦ b ⟧ᵉ) ∧ P} {Q}  (λ {(pb , pP) → λ runS → f pP (if-true pb runS)}))
      (complete S₁ {(F ∘ ⟦ b ⟧ᵉ) ∧ P} {Q} (λ {(pb , pP) → λ runS₁ → f pP (if-false pb runS₁)}))
+
 complete (while b do S){P}{Q} f = 
   cons f (while (cons lemma (complete S {wlp S W} {W} id) id)) (λ {(pb , pQ') → pQ' (while-false pb)})
   where
     W = wlp (while b do S) Q
     lemma : ((T ∘ ⟦ b ⟧ᵉ) ∧ W) ==> wlp S W
     lemma (pb , pw) runS runW = pw (while-true pb runS runW)
-
-
-
--- Correctness of factorial program
-------------------------------------------------------------
-
--- private
---   open import Data.Fin
-
---   ⟦fac⟧ : ℕ → ℕ
---   ⟦fac⟧ zero    = 1
---   ⟦fac⟧ (suc n) = suc n * ⟦fac⟧ n
-  
---   fac-loop : St 3
---   fac-loop =
---     while lt (var (# 1)) (var (# 0)) do
---         (# 1 := add (lit 1) (var (# 1)) ,
---          # 2 := mul (var (# 1)) (var (# 2)) )
-  
---   fac : St 3
---   fac =
---     # 1 := lit 0 ,
---     # 2 := lit 1 ,
---     fac-loop 
-
---   fac-partial-ok : ∀ n {i acc} → 〈 (λ s → s ≡ n ∷ i ∷ acc ∷ []) 〉 fac 〈 (λ s → s ≡ n ∷ n ∷ ⟦fac⟧ n ∷ []) 〉
---   fac-partial-ok n {i}{acc} = 
---     ass , {!!}
-
-
 
 
