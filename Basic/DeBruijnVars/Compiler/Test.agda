@@ -1,0 +1,395 @@
+
+module Basic.DeBruijnVars.Compiler.Test where
+
+open import Basic.DeBruijnVars.AST
+open import Basic.DeBruijnVars.Compiler.Code
+open import Basic.DeBruijnVars.Compiler.Machine
+open import Basic.DeBruijnVars.BigStep
+
+open import Data.Fin
+open import Data.Nat
+open import Data.Vec
+open import Data.Product
+open import Data.Bool
+open import Data.List
+
+open Basic.DeBruijnVars.BigStep.Fac
+
+fac' : Code 3
+fac' = 𝓒⟦ fac ⟧ˢ 
+
+test = trace fac' [] (1 ∷ 0 ∷ 0 ∷ []) 1000
+
+-- normal form of "test"
+
+-- (PUSH 0 ∷
+--  STORE (suc zero) ∷
+--  PUSH 1 ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 0 ∷ 0 ∷ [])
+-- ∷
+-- (STORE (suc zero) ∷
+--  PUSH 1 ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 0 ∷ [] , 1 ∷ 0 ∷ 0 ∷ [])
+-- ∷
+-- (PUSH 1 ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 0 ∷ 0 ∷ [])
+-- ∷
+-- (STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 0 ∷ 0 ∷ [])
+-- ∷
+-- (LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH zero ∷
+--  FETCH (suc zero) ∷
+--  LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH (suc zero) ∷
+--  LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , nat 0 ∷ nat 1 ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , bool true ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH (suc zero) ∷
+--  PUSH 1 ∷
+--  ADD ∷
+--  STORE (suc zero) ∷
+--  FETCH (suc (suc zero)) ∷
+--  FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (PUSH 1 ∷
+--  ADD ∷
+--  STORE (suc zero) ∷
+--  FETCH (suc (suc zero)) ∷
+--  FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 0 ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (ADD ∷
+--  STORE (suc zero) ∷
+--  FETCH (suc (suc zero)) ∷
+--  FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ nat 0 ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (STORE (suc zero) ∷
+--  FETCH (suc (suc zero)) ∷
+--  FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 0 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH (suc (suc zero)) ∷
+--  FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH (suc zero) ∷
+--  MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (MUL ∷
+--  STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ nat 1 ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (STORE (suc (suc zero)) ∷
+--  LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH zero ∷
+--  FETCH (suc zero) ∷
+--  LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (FETCH (suc zero) ∷
+--  LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , nat 1 ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (LT ∷
+--  BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , nat 1 ∷ nat 1 ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (BRANCH
+--  (FETCH (suc zero) ∷
+--   PUSH 1 ∷
+--   ADD ∷
+--   STORE (suc zero) ∷
+--   FETCH (suc (suc zero)) ∷
+--   FETCH (suc zero) ∷
+--   MUL ∷
+--   STORE (suc (suc zero)) ∷
+--   LOOP (FETCH zero ∷ FETCH (suc zero) ∷ LT ∷ [])
+--   (FETCH (suc zero) ∷
+--    PUSH 1 ∷
+--    ADD ∷
+--    STORE (suc zero) ∷
+--    FETCH (suc (suc zero)) ∷
+--    FETCH (suc zero) ∷ MUL ∷ STORE (suc (suc zero)) ∷ [])
+--   ∷ [])
+--  (NOOP ∷ [])
+--  ∷ []
+--  , bool false ∷ [] , 1 ∷ 1 ∷ 1 ∷ [])
+-- ∷
+-- (NOOP ∷ [] , [] , 1 ∷ 1 ∷ 1 ∷ []) ∷ ([] , [] , 1 ∷ 1 ∷ 1 ∷ []) ∷ []
+
+
+
+

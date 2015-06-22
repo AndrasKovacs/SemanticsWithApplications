@@ -127,9 +127,9 @@ private
   
 -- Deterministic
 
-deterministicₙ : 
+deterministic : 
   ∀ {n}{p : St n}{s s' s''} → ⟨ p , s ⟩⟱ s' → ⟨ p , s ⟩⟱ s'' → s' ≡ s''
-deterministicₙ = go where
+deterministic = go where
   go : ∀ {p s s' s''} → ⟨ p , s ⟩⟱ s' → ⟨ p , s ⟩⟱ s'' → s' ≡ s''
   go ass ass = refl
   go skip skip = refl
@@ -183,7 +183,7 @@ private
 
 -- Correctness of factorial program
 
-private
+module Fac where
   
   ⟦fac⟧ : ℕ → ℕ
   ⟦fac⟧ zero    = 1
