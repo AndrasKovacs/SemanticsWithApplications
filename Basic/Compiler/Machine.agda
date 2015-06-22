@@ -1,8 +1,8 @@
-module Basic.DeBruijnVars.Compiler.Machine where
+module Basic.Compiler.Machine where
 
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
-open import Basic.DeBruijnVars.Compiler.Code
+open import Basic.AST
+open import Basic.BigStep
+open import Basic.Compiler.Code
 
 open import Utils.Decidable
 open import Data.Product

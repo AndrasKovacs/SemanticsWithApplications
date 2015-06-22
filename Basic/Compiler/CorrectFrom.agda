@@ -1,10 +1,10 @@
 
-module Basic.DeBruijnVars.Compiler.CorrectFrom where
+module Basic.Compiler.CorrectFrom where
 
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
-open import Basic.DeBruijnVars.Compiler.Code
-open import Basic.DeBruijnVars.Compiler.SplitCode
+open import Basic.AST
+open import Basic.BigStep
+open import Basic.Compiler.Code
+open import Basic.Compiler.SplitCode
 open import Utils.NatOrdLemmas
 open import Utils.Decidable
 open import Utils.Monoid

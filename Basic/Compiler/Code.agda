@@ -1,8 +1,8 @@
 
-module Basic.DeBruijnVars.Compiler.Code where
+module Basic.Compiler.Code where
 
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
+open import Basic.AST
+open import Basic.BigStep
 open import Utils.Decidable
 open import Utils.Monoid
 

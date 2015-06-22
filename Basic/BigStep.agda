@@ -1,5 +1,5 @@
 
-module Basic.DeBruijnVars.BigStep where
+module Basic.BigStep where
  
 import Data.Bool as Bool using (not)
 open import Data.Bool hiding (not; if_then_else_)
@@ -16,7 +16,7 @@ import Level as L
 
 open import Utils.Decidable
 open import Utils.NatOrdLemmas
-open import Basic.DeBruijnVars.AST     
+open import Basic.AST     
 
 infixr 4 _,_
 data ⟨_,_⟩⟱_ {n : ℕ} : St n → State n → State n → Set where

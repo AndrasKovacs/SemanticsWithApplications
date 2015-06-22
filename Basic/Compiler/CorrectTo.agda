@@ -1,13 +1,13 @@
 
 
-module Basic.DeBruijnVars.Compiler.CorrectTo where
+module Basic.Compiler.CorrectTo where
 
 open import Data.List
 open import Relation.Binary.PropositionalEquality
 
-open import Basic.DeBruijnVars.Compiler.Code
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
+open import Basic.Compiler.Code
+open import Basic.AST
+open import Basic.BigStep
 open import Utils.Decidable
 
 𝓒-correct-to :

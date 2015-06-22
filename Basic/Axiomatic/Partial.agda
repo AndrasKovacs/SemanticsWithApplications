@@ -1,5 +1,5 @@
 
-module Basic.DeBruijnVars.Axiomatic.Partial where
+module Basic.Axiomatic.Partial where
  
 open import Data.Bool hiding (not; if_then_else_; _∧_)
 open import Data.Vec hiding ([_]; _++_; split)
@@ -9,8 +9,8 @@ open import Data.Product
 import Level as L
 
 open import Utils.Decidable
-open import Basic.DeBruijnVars.AST     
-open import Basic.DeBruijnVars.BigStep
+open import Basic.AST     
+open import Basic.BigStep
 
 -- Predicate combinators
 _∧_ : 

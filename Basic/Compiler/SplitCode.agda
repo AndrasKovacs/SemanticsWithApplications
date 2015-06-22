@@ -1,9 +1,9 @@
 
-module Basic.DeBruijnVars.Compiler.SplitCode where
+module Basic.Compiler.SplitCode where
 
-open import Basic.DeBruijnVars.Compiler.Code
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
+open import Basic.Compiler.Code
+open import Basic.AST
+open import Basic.BigStep
 open import Utils.Monoid
 
 open import Data.Vec hiding (_++_; [_]; _∷ʳ_)

@@ -1,4 +1,4 @@
-module Basic.DeBruijnVars.EqvSemantics where
+module Basic.EqvSemantics where
 
 open import Data.Vec 
 open import Function
@@ -6,11 +6,9 @@ open import Data.Product
 open import Data.Maybe
 
 open import Utils.Decidable
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
-open import Basic.DeBruijnVars.SmallStep
-
--- Equivalence of the two semantics
+open import Basic.AST
+open import Basic.BigStep
+open import Basic.SmallStep
 
 Small≡Big : ∀ {n}{S : St n}{s s'} → ⟨ S , s ⟩⟱ s' ⇔ ⟨ S , s ⟩⟶* s'
 Small≡Big {n} = to , from ∘ proj₂

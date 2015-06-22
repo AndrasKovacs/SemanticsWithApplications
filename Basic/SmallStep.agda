@@ -1,5 +1,5 @@
  
-module Basic.DeBruijnVars.SmallStep where
+module Basic.SmallStep where
 
 import Data.Bool as Bool using (not)
 open import Data.Bool hiding (not; if_then_else_)
@@ -16,7 +16,7 @@ open import Data.Product
 open import Data.Maybe
 import Level as L
 
-open import Basic.DeBruijnVars.AST
+open import Basic.AST
 open import Utils.Decidable
 open import Utils.NatOrdLemmas
 

@@ -1,5 +1,5 @@
 
-module Basic.DeBruijnVars.AST where
+module Basic.AST where
 
 import Data.Bool as Bool using (not)
 open import Data.Bool hiding (not; if_then_else_)

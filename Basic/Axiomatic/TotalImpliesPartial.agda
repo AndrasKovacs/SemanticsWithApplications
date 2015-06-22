@@ -1,11 +1,11 @@
 
-module Basic.DeBruijnVars.Axiomatic.TotalImpliesPartial where
+module Basic.Axiomatic.TotalImpliesPartial where
 
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.BigStep
-open import Basic.DeBruijnVars.Axiomatic.Total as T
+open import Basic.AST
+open import Basic.BigStep
+open import Basic.Axiomatic.Total as T
   renaming (〈_〉_〈_〉 to total〈_〉_〈_〉) 
-open import Basic.DeBruijnVars.Axiomatic.Partial as P
+open import Basic.Axiomatic.Partial as P
   renaming (〈_〉_〈_〉 to partial〈_〉_〈_〉) hiding (_==>_; _∧_)
 
 open import Function

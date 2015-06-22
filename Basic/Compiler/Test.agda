@@ -1,10 +1,10 @@
 
-module Basic.DeBruijnVars.Compiler.Test where
+module Basic.Compiler.Test where
 
-open import Basic.DeBruijnVars.AST
-open import Basic.DeBruijnVars.Compiler.Code
-open import Basic.DeBruijnVars.Compiler.Machine
-open import Basic.DeBruijnVars.BigStep
+open import Basic.AST
+open import Basic.Compiler.Code
+open import Basic.Compiler.Machine
+open import Basic.BigStep
 
 open import Data.Fin
 open import Data.Nat
@@ -13,7 +13,7 @@ open import Data.Product
 open import Data.Bool
 open import Data.List
 
-open Basic.DeBruijnVars.BigStep.Fac
+open Basic.BigStep.Fac
 
 fac' : Code 3
 fac' = 𝓒⟦ fac ⟧ˢ 
