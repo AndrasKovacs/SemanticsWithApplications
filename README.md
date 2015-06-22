@@ -3,7 +3,7 @@ Agda formalization and proofs of various parts of Nielson and Nielson's [Semanti
 
 The repository currently covers chapters 1, 2, 3 and 6.
 
-The code was checked with [Agda 2.4.2.3](https://hackage.haskell.org/package/Agda). 
+The code was checked with [Agda 2.4.2.3](https://hackage.haskell.org/package/Agda) and version 0.9 of the [standard library](https://github.com/agda/agda-stdlib/releases).
 
 --
 
