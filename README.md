@@ -1,13 +1,29 @@
 
 Agda formalization and proofs of various parts of Nielson and Nielson's [Semantics with Applications: A Formal Introduction](http://www.amazon.com/Semantics-With-Applications-Introduction-Professional/dp/0471929808).
 
-The repository currently covers chapters 1, 2, 3 and 6.
-
 The code was checked with [Agda 2.4.2.3](https://hackage.haskell.org/package/Agda) and version 0.9 of the [standard library](https://github.com/agda/agda-stdlib/releases).
 
---
+## 1. General notes
 
-## Short guide to directories and source files
+#### What I did here
+
+I covered chapters 1, 2, 3 and 6 of the book, so the operational semantics and axiomatic semantics parts, leaving out denotational semantics and static analysis. 
+
+I took the definitions from the book, ported them to Agda, while including missing pieces that the book glosses over (like variable binding), and also proved the main results of each covered chapter. I did all the Agda proofs without using the proofs in the book as reference. As a result there are some differences, but not too many; the theorems are simple and constrained enough for the proofs to follow essentially the same blueprint. 
+
+I skipped denotational semantics because faithfully handling it in Agda likely requires additional advanced machinery such as coinduction and partiality monads, in which I have little experience. 
+
+#### Why I did it
+
+First, machine checked proofs are vastly more trustworthy than human-checked formal proofs. Although they can be subverted by bugs in the underlying infrastructure, such accidents are less likely than the ubiquitous *human error*, and unlike human errors, they go away after a bugfix. Machine checked proofs are also much more rigorous than what is usual in mathematics. They leave nothing "as exercise to the reader", and thus they force the implementor to think about otherwise neglected details. This is one reason (amongst many others) why they are currently often cumbersome for actual mathematical research, but this is also a boon to beginning students of formal arts (myself included), who are often nervous about the correctness of their proofs or doubt the solidity of their knowledge. I believe that in my case learning semantics with Agda was a more thorough and engaging process than what it could have been without it, and it also boosted my skills in dependently typed programming and type theory.
+
+Second, as I mentioned I couldn't find much prior Agda work like this on the internet, so sharing this should have some value to interested parties. I did find some mentions of other people ([for example](https://github.com/liamoc?tab=repositories)) doing some serious semantics in Agda, but they unfortunately haven't shared their work as of yet. 
+
+Third, it was fun (the main reason). 
+
+## 2. Short guide to directories and source files
+
+Below you shall find short notes on the contents of source files. I also include more detailed commentaries in the sources themselves. 
 
 ### Basic
 
