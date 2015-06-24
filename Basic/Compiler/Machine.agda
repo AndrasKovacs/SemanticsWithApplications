@@ -8,9 +8,33 @@ open import Utils.Decidable
 open import Data.Product
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
-open import Data.List
+open import Data.List hiding (unfold)
 open import Data.Bool
 open import Data.Nat
+open import Data.Maybe
+
+{-
+
+This is a simple interpreter for the abstract machine code.
+
+There's no corresponding part in the book.
+
+A nice thing about the abstract machine is that each transition is decidable,
+so we can tell at each point whether our program is stuck or may continue.
+
+Of course, this doesn't mean that *computation sequences* are decidable! (it's pretty much
+just the halting problem). 
+
+What we can do is specify how many steps we'd like to compute, and then compute that far.
+
+The "steps" function below only computes the ending configuration, while "trace"
+returns a list of all intermediate configurations.
+
+"unfold" returns a computation sequence if the program terminates or gets stuck in
+the given number of steps.  
+
+-}
+
 
 step : ∀ {n} (c : Code n) e s → Dec (∃₂ λ c' e' -> ∃ λ s' → ⟨ c , e , s ⟩▷⟨ c' , e' , s' ⟩)
 step [] e s = no (λ {(c' , e' , s' , ())})
@@ -88,3 +112,14 @@ trace c e s zero = []
 trace c e s (suc n) with step c e s
 ... | yes  (c' , e' , s' , p) = (c , e , s) ∷ trace c' e' s' n
 ... | no _ = (c , e , s) ∷ []
+
+unfold :
+  ∀ {n} c e (s : State n) → ℕ → Maybe (∃₂ λ c' e' → ∃ λ s' → ⟨ c , e , s ⟩▷*⟨ c' , e' , s' ⟩)
+unfold [] e s n₁ = just ([] , e , s , done)
+unfold (x ∷ c) e s zero = nothing
+unfold (x ∷ c) e s (suc n) with step (x ∷ c) e s
+... | no ¬p = just (x ∷ c , e , s , stuck (λ c' e' s' z → ¬p (c' , e' , s' , z)))
+... | yes (c' , e' , s' , p) with unfold c' e' s' n
+... | nothing = nothing
+... | just (c'' , e'' , s'' , seq) = just (c'' , e'' , s'' , p ∷ seq)
+

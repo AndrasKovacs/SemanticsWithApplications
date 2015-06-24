@@ -20,6 +20,18 @@ open import Utils.Decidable
 open import Utils.Monoid
 open import Utils.NatOrdLemmas
 
+{-
+This module contains an extension of the While language and assorted semantics.
+It incorporates some  of the suggested extra features in the book.
+
+The extra features in short:
+
+  - Function calls and recursive local function declarations
+  - Local variable declarations
+  - String-based bindings with name shadowing
+  - Return statements with the usual jump in control flow
+-}
+
 
 -- Data definitions
 --------------------------------------------------
@@ -35,7 +47,16 @@ data Exp : Ty → Set where
   lit         : ℕ → Exp nat
   add mul sub : Exp nat → Exp nat → Exp nat
   var         : String → Exp nat
+
+  {-
+  Function calls. Note that we have calls as a proper *expression* that
+  evaluate to a value, if they terminate. This also implies that the evaluation
+  of expressions has a partial semantics just like statements.
+
+  We apply a function to a list of arguments. The number of args must be correct.
+  -}
   _$:_        : String → List (Exp nat) → Exp nat
+  
   tt ff       : Exp bool
   eq lt lte   : Exp nat → Exp nat → Exp bool
   and         : Exp bool → Exp bool → Exp bool
@@ -45,8 +66,14 @@ data Exp : Ty → Set where
 infixr 4 _,_
 infixr 5 _:=_
 data St : Set where
+
+  {- Function declarations. We specify the arguments as a list of bindings.
+  They are recursive. -}
   fun           : String → List String → St → St → St
+
+  {- variable declarations -}  
   decl          : String → Exp nat → St → St
+  
   _:=_          : String → Exp nat → St
   skip          : St
   _,_           : St → St → St
@@ -54,16 +81,33 @@ data St : Set where
   while_do_     : Exp bool → St → St
   ret           : Exp nat → St
 
+
+{- The environment contains numbers and functions -}
 data Entry : Set where
   nat : ℕ → Entry
   fun : List String → St → Entry
 
+{- The environment is now keyed by string (rather than de Bruijn indices) -}
 Env : Set
 Env = List (String × Entry)
 
 _,ₙ_ : String → ℕ → (String × Entry)
 v ,ₙ n = v , nat n
 infixr 5 _,ₙ_
+
+{-
+A note on the return statement:
+
+The book recommends two way for dealing with exceptions and jumps.
+
+One way is to use small-step semantics. The other way is to introduce new program
+states in big-step semantics. With more complicated derivation rules and many
+types of non-local effects (and of course non-determinism), small-step semantics
+seems to be more manageable.
+
+But here we have just the return statement, so we are fine with an extra state
+and big-step semantics.
+-}
 
 data State : Set where
   ok  : Env → State
@@ -80,6 +124,58 @@ ok-inj refl = refl
 --------------------------------------------------
 
 
+{-
+Scoping rules are nontrivial, but we don't want to clutter our derivations
+with explicit proofs for them.
+
+A standard Agda solution for this is to use so-called irrelevant proofs. Such
+types have at most a single value up to definitional equality, therefore they
+cannot influence actual computation. Agda is willing to automatically fill in
+the value for these types once it becomes apparent that the value exists.
+
+The simplest example of a irrelevant type is the unit type.
+
+  record ⊤ : Set where constructor tt. 
+
+Agda has eta-extensionality for records, so Agda thinks that any value of
+type ⊤ is definitionally equal to "tt".
+
+The well-scopedness predicates below all compute to ⊤ or ⊥ (the unprovable type),
+and both are irrelevant, so we get all the scoping proofs nicely inferred
+and hidden.
+
+We also augment our inference system with judicious use of instance arguments.
+Agda tries to search for suitable values for these arguments from the current scope.
+-}
+
+------------------------------------------------------------
+
+{-
+A note on static semantics:
+
+Arguably, well-scopedness should belong to static semantics. After all,
+it can be checked without running the program, and in real compilers
+scope checking also tends to be done statically.
+
+Here, we don't *have* static semantics at all. The static semantic rules are baked into
+the dynamic semantic rules. Adding proper static semantics would be one of the many potential
+extensions and improvements to this library.
+
+Ideally, we would have a completely raw AST, and an AST for code that is correct
+with respect to static semantics (so it's annotated with proofs of static correctness).
+
+We would also have a type checker function that would decide if a raw AST can be converted
+to the correct AST. It would also nice to have a type erasure function that goes in the opposite
+direction (erases proofs and returns a raw AST), and we could establish correctness of type
+checking with respect to erasure, for example by proving that checking is the left inverse
+of erasure.
+
+It may be also the case, although I haven't tested it, that type checking would be faster
+with a separate checked AST.
+-}
+
+
+-- variable is in scope
 InScopeVar : String → Env → Set
 InScopeVar v [] = ⊥
 InScopeVar v ((_ , fun _ _) ∷ s) = InScopeVar v s
@@ -87,6 +183,7 @@ InScopeVar v ((v' , nat n)  ∷ s) with v ≡⁇ v'
 ... | yes _ = ⊤
 ... | no  _ = InScopeVar v s
 
+-- function is in scope
 InScopeFun : String → Env → Set
 InScopeFun v [] = ⊥
 InScopeFun v ((_ , nat _) ∷ s) = InScopeFun v s
@@ -108,6 +205,7 @@ lookupFun v ((v' , fun args body) ∷ s) with v ≡⁇ v'
 ... | yes _ = args , body
 ... | no  _ = lookupFun v s
 
+-- perform a substitution on the environment at a name that is in scope
 _[_]≔_ : ∀ s v ⦃ _ : InScopeVar v s ⦄ → ℕ → Env
 _[_]≔_ [] _ ⦃ ⦄ _
 _[_]≔_ ((v' , fun args body) ∷ s) v n = (v' , fun args body) ∷ (s [ v ]≔ n)
@@ -115,12 +213,14 @@ _[_]≔_ ((v' , fun args body) ∷ s) v n = (v' , fun args body) ∷ (s [ v ]≔
 ... | yes p = (v' , nat n') ∷ Γ
 ... | no ¬p = (v' , nat n ) ∷ Γ [ v ]≔ n'
 
+-- Match the length of two lists
 ArgLenMatch : List String → List ℕ → Set
 ArgLenMatch []          []         = ⊤
 ArgLenMatch []          (_ ∷ _)    = ⊥
 ArgLenMatch (_ ∷ names) []         = ⊥
 ArgLenMatch (_ ∷ names) (_ ∷ vals) = ArgLenMatch names vals
 
+-- Create a new environment with the function arguments pushed to the front
 callWith : ∀ args vals ⦃ _ : ArgLenMatch args vals ⦄ → Env
 callWith []          []         = []
 callWith []          (_ ∷ _) ⦃ ⦄
@@ -177,25 +277,27 @@ mutual
       → ----------------------------
         s ⟨ var v ⟩ᵉ⟱ lookupVar v s
 
+    {- Evaluation of function calls -}
     _$:_ : 
-        {retVal       : ℕ}
+        {retVal       : ℕ}               
         {argVals      : List ℕ}
-        {f            : String}
-        {args         : List (Exp nat)}
-        ⦃ in-scope-f  : InScopeFun f s ⦄ 
+        {f            : String}          -- if we have a function
+        {args         : List (Exp nat)}  -- and a list of arguments
+        ⦃ in-scope-f  : InScopeFun f s ⦄ -- and the function is in scope
 
-        → let func     = lookupFun f s
-              argNames = proj₁ func
+        → let func     = lookupFun f s   
+              argNames = proj₁ func       
               body     = proj₂ func in 
 
-           s ⟨ args ⟩ᵃ⟱ argVals
-        →  ⦃ arg-len-match : ArgLenMatch argNames argVals ⦄
+           s ⟨ args ⟩ᵃ⟱ argVals -- we can evaluate the arguments
+        →  ⦃ arg-len-match : ArgLenMatch argNames argVals ⦄ -- and the number of arguments is correct
 
+       -- note the recursive occurence in the call environement ⇓ 
         → let callEnv = callWith argNames argVals <> [ (f , fun argNames body) ] in
 
          ⟨ body , ok callEnv ⟩⟱ ret retVal
-      → -----------------------------------
-           s ⟨ f $: args ⟩ᵉ⟱ retVal
+      → -----------------------------------   -- then a function call evaluates to the return value
+           s ⟨ f $: args ⟩ᵉ⟱ retVal           -- of the function body evaluated in the call environment
   
   -- Evaluation of statements
   data ⟨_,_⟩⟱_ : St → State → State → Set where
@@ -206,12 +308,15 @@ mutual
       → -------------------------------------------------------------------
                       ⟨ fun x args body S , ok s ⟩⟱ ok s'
 
+    {-- This rule propagates ("rethrows") the return statement's effect if it happens inside the
+        scope of the function declaration --}
     fun-ret : 
                  ∀ {x s r S args body} → 
         ⟨ S , ok ((x , fun args body) ∷ s) ⟩⟱ ret r
       → --------------------------------------------
            ⟨ fun x args body S , ok s ⟩⟱ ret r
 
+    {- variable declarations -}
     decl :
                   ∀ {s s' S x e eVal e'} → 
                      s ⟨ e ⟩ᵉ⟱ eVal → 
@@ -219,6 +324,7 @@ mutual
       → ----------------------------------------------------
                   ⟨ decl x e S , ok s ⟩⟱ ok s'
 
+    {- variable declarations propagating the return statement -}
     decl-ret :
                ∀ {r s S x e eVal} → 
                  s ⟨ e ⟩ᵉ⟱ eVal → 
@@ -248,7 +354,9 @@ mutual
         ⟨ S₁ , s₁ ⟩⟱ ok s₂  →  ⟨ S₂ , ok s₂ ⟩⟱ s₃  
       → --------------------------------------
                ⟨ (S₁ , S₂ ) , s₁ ⟩⟱ s₃
-       
+
+    {-- If we return in the left statement of a composite statement,
+        then we ignore the right statement and just return -}        
     _ret,_ :
                  ∀ {x s₁ s₂ S₁ S₂} → 
         ⟨ S₁ , s₁ ⟩⟱ ret x  →  ⟨ S₂ , ret x ⟩⟱ s₂
@@ -280,6 +388,7 @@ mutual
         ⟨ while b do S , ok s ⟩⟱ ok s
 
 
+        
 substExp : ∀ {t s}{e : Exp t}{v v'} → v ≡ v' → s ⟨ e ⟩ᵉ⟱ v → s ⟨ e ⟩ᵉ⟱ v'
 substExp refl p2 = p2
 

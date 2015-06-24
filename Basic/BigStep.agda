@@ -16,11 +16,26 @@ import Level as L
 
 open import Utils.Decidable
 open import Utils.NatOrdLemmas
-open import Basic.AST     
+open import Basic.AST
+
+
+{-
+The big-step semantics of the while language. It's chapter 2.1 in the book. 
+
+Note that we use a {n : ℕ} parameter to fix the size of the program state over
+our derivations. This is fine since we don't have and derivation rule that
+changes the size of the state.
+
+The definitions themselves should come as no surprise to readers of the book.
+
+I employ some syntactic shenanigans to make the definitions visually similar to the familiar
+sequent/natural calculus notation (I stole the formatting style from Conor McBride). 
+-}
 
 infixr 4 _,_
 data ⟨_,_⟩⟱_ {n : ℕ} : St n → State n → State n → Set where
 
+  {- "[ x ]≔ value" is just the standard library definition of vector update -}
   ass : 
                    ∀ {s x a}
     → ------------------------------------
@@ -37,6 +52,10 @@ data ⟨_,_⟩⟱_ {n : ℕ} : St n → State n → State n → Set where
     → -------------------------------------
              ⟨ (S₁ , S₂ ) , s₁ ⟩⟱ s₃           
 
+  {- The "T" in "T (⟦ b ⟧ᵉ s)" can be found in Data.Bool.Base. It's ⊤ on a true argument
+     and ⊥ on a false argument, so it just lifts boolean values to irrelevant proofs.
+     "F" works the same way, except it's provable on a false argument -}
+  
   if-true :
              ∀ {s s' S₁ S₂ b} → 
        T (⟦ b ⟧ᵉ s)  →  ⟨ S₁ , s ⟩⟱ s'
@@ -62,7 +81,16 @@ data ⟨_,_⟩⟱_ {n : ℕ} : St n → State n → State n → Set where
       ⟨ while b do S , s ⟩⟱ s
 
 
--- Example program derivation (very slow to check!)
+{-
+Example program and program derivation below.
+Note the magnificient de Bruijn variables.
+
+Program derivations are really slow to typecheck.
+Daring souls may want to uncomment it and give it a try.
+But other than that, we may should that the derivations look pretty clean and concise;
+there's a lot of details that Agda's inference can fill in for us. 
+
+-}
 private
   prog : St 3
   prog =
@@ -82,13 +110,22 @@ private
   --         (while-false tt)))
  
 
--- Divergence 
 
+{- A program diverges on a state if there is no derivation starting from it
+   Since this is big-step semantics, we can't distinguish this from being stuck -}
 _divergesOnₙ_ : ∀ {n} → St n → State n → Set
 prog divergesOnₙ s = ∀ {s'} → ¬ ⟨ prog , s ⟩⟱ s'
 
+{- A program is divergent if it diverges on all states -}
 Divergentₙ : ∀ {n} → St n → Set
 Divergentₙ prog = ∀ {s} → prog divergesOnₙ s
+
+{-
+The fun thing about the following proof of divergence is that we implicitly
+rely on the finiteness of Agda data. Since we have apparent infinite recursion
+in the proof, but all inductive Agda data are finite, this implies that no such
+derivation may exist in the first place.
+-}
 
 private
   inf-loopₙ : ∀ {n} → Divergentₙ {n} (while tt do skip)
@@ -125,8 +162,7 @@ private
     from (if-true x (p1 , p2)) = while-true x p1 p2
     from (if-false x skip) = while-false x
   
--- Deterministic
-
+-- The semantics is deterministic. Not much to comment on. 
 deterministic : 
   ∀ {n}{p : St n}{s s' s''} → ⟨ p , s ⟩⟱ s' → ⟨ p , s ⟩⟱ s'' → s' ≡ s''
 deterministic = go where
@@ -144,9 +180,19 @@ deterministic = go where
   go (while-false x) (while-false x₁) = refl
 
 
+{-
+Below is a proof that is not contained in the book. I did it to familiarize myself
+with style of proving in this semantics.
 
--- Property: if we start with a loop limit one higher, we loop once more
--- but we diverge if the start index is higher than the limit
+It proves that if we have a derivation for a loop, then we can construct a
+derivation for a loop that goes on for one more iteration, because it has
+a higher bound in the condition.
+
+However, if we start out with a loop index that is already greater then the
+loop bound, we get divergence. But just having a loop derivation as hypothesis
+rules out divergence! We can show this to Agda by proving the divergence in that
+case and getting a contradiction.
+-}
 
 private 
   loop : St 2
@@ -156,7 +202,7 @@ private
   
   once-more : 
     ∀ { i₀ lim₀ i₁} →
-      ⟨ loop , i₀ ∷ lim₀ ∷ [] ⟩⟱ (i₁ ∷ lim₀ ∷ [])
+      ⟨ loop , i₀ ∷ lim₀     ∷ [] ⟩⟱ (i₁     ∷ lim₀     ∷ [])
     → ⟨ loop , i₀ ∷ suc lim₀ ∷ [] ⟩⟱ (1 + i₁ ∷ suc lim₀ ∷ [])
   
   once-more {i₀}{lim₀} p with cmp i₀ lim₀
@@ -181,7 +227,25 @@ private
     diverges p1 (while-false x) rewrite TrueA→A $ F-not-elim x = a≮a _ p1
 
 
--- Correctness of factorial program
+{-
+Correctness of a factorial program.
+
+This task made me ponder the nature of meta- and object languages a bit.
+
+Our job here is to prove that the factorial program computes a factorial. But in order to
+be able to state this property, we had to define the notion of factorial in Agda. But this
+Agda ⟦fac⟧ function is already executable! Luckily for us, Agda and Coq and co. already
+have computational meaning. So if our goal is to simply have a correct factorial program,
+then we should just write in in Agda or Coq.
+
+Some languages are just better as metalanguages, but if those metalanguages are also
+satisfactory as object languages then we might make do with just a single
+language, instead of multiple languages and multiple semantics.
+
+Turning back to the actual proof, note that unlike the manual factorial proof in
+Chapter 6.1 of the book, this one looks pretty neat and it's also concise.
+It's also structurally similar to the program itself. 
+-}
 
 module Fac where
   

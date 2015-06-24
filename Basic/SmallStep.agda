@@ -20,6 +20,21 @@ open import Basic.AST
 open import Utils.Decidable
 open import Utils.NatOrdLemmas
 
+{-
+Small-step semantics for While; see chapter 2.2 of the book. 
+
+The book uses the notational convenience of omitting the state on the right hand side
+of the transition if there is no such state. We must define the same shorthand explicitly.
+
+Since the book seems to do it, I also decided to index derivation sequences by their length.
+This means also more cases for notatitonal shorthands. Otherwise, the definitions follow the book
+faithfully.
+
+Here I omit some commentary, since most of the things follow the same pattern as with big-step
+semantics. However, I also include some lemmas specific to small-step semantics, which are
+also included in the book.
+-}
+
 
 infixr 5 _∷_
 mutual
@@ -146,43 +161,6 @@ private
   inf-loopₛ (while ∷ (if-false () ∷ p))
 
 
--- Split sequenced statements
-seq-split : 
-  ∀ {n k S₁ S₂}{s₁ s₃ : State n}
-  → ⟨ (S₁ , S₂) , s₁ ⟩ k ⟶ s₃
-  → Σ (State n × ℕ × ℕ) λ {(s₂ , k₁ , k₂) 
-  → ⟨ S₁ , s₁ ⟩ k₁ ⟶ s₂
-  × ⟨ S₂ , s₂ ⟩ k₂ ⟶ s₃
-  × k₁ + k₂ ≡ k}
-seq-split (() stop)
-seq-split (x ◄ ∷ p) with seq-split p
-... | _ , p1 , p2 , prf = _ , x ∷ p1 , p2 , cong suc prf
-seq-split (x ∙ ∷ p) = _ , x stop , p , refl
-
--- -- Exercise 2.20
-
-ex2-20 :
-  ∃ λ n → ∃₂ λ (s s' : State n) → ∃₂ λ A B →
-  ⟨ (A , B) , s ⟩⟶*⟨ B , s' ⟩ × ¬ ⟨ A , s ⟩⟶* s'
-ex2-20 = 1 , (0 ∷ []) , (2 ∷ []) , A , (while b do A) , Deriv , ¬Deriv
-  where
-  A = zero := add (lit 1) (var zero)
-  b = lt (var zero) (lit 2)
-  Deriv = , ass ∙ ∷ while ∷ if-true tt ∷ ass ∙ ∷ pause
-  ¬Deriv : ¬ ⟨ A , 0 ∷ [] ⟩⟶* (2 ∷ [])
-  ¬Deriv (._ , () stop)
-  ¬Deriv (._ , () ∷ proj₂)
-
-append :
-  ∀ {n k₁ k₂}{s s' s'' : State n}{A B}
-  → ⟨ A , s ⟩ k₁ ⟶ s'
-  → ⟨ B , s' ⟩ k₂ ⟶ s''
-  → ⟨ (A , B) , s ⟩ (k₁ + k₂) ⟶ s''
-append (x stop) p2 = (x ∙) ∷ p2
-append (x ∷ p1) p2 = (x ◄) ∷ append p1 p2
-
--- -- Exercise 2.22
-
 deterministicₛ :
   ∀ {n}{S : St n}{S' S'' s s' s''} 
   → ⟨ S , s ⟩⟶[ S' , s' ] → ⟨ S , s ⟩⟶[ S'' , s'' ]
@@ -205,7 +183,53 @@ deterministicₛ {n} = go where
   go (if-true x) (if-false x₁) rewrite T→≡true x = ⊥-elim x₁
   go (if-false x) (if-true x₁) rewrite T→≡true x₁ = ⊥-elim x
   go (if-false x) (if-false x₁) = refl , refl
-  go while while = refl , refl
+  go while while = refl , refl  
+
+
+{-
+Lemma 2.19 of the book: if we have a derivation over the composition of statements,
+then there exists two derivations over the substatements, such that their lenghts
+add up to the length of the original derivation.
+-}
+
+seq-split : 
+  ∀ {n k S₁ S₂}{s₁ s₃ : State n}
+  → ⟨ (S₁ , S₂) , s₁ ⟩ k ⟶ s₃
+  → Σ (State n × ℕ × ℕ) λ {(s₂ , k₁ , k₂) 
+  → ⟨ S₁ , s₁ ⟩ k₁ ⟶ s₂
+  × ⟨ S₂ , s₂ ⟩ k₂ ⟶ s₃
+  × k₁ + k₂ ≡ k}
+seq-split (() stop)
+seq-split (x ◄ ∷ p) with seq-split p
+... | _ , p1 , p2 , prf = _ , x ∷ p1 , p2 , cong suc prf
+seq-split (x ∙ ∷ p) = _ , x stop , p , refl
+
+{-
+Exercise 2.20.
+-}
+ex2-20 :
+  ∃ λ n → ∃₂ λ (s s' : State n) → ∃₂ λ A B →
+  ⟨ (A , B) , s ⟩⟶*⟨ B , s' ⟩ × ¬ ⟨ A , s ⟩⟶* s'
+ex2-20 = 1 , (0 ∷ []) , (2 ∷ []) , A , (while b do A) , Deriv , ¬Deriv
+  where
+  A = zero := add (lit 1) (var zero)
+  b = lt (var zero) (lit 2)
+  Deriv = , ass ∙ ∷ while ∷ if-true tt ∷ ass ∙ ∷ pause
+  ¬Deriv : ¬ ⟨ A , 0 ∷ [] ⟩⟶* (2 ∷ [])
+  ¬Deriv (._ , () stop)
+  ¬Deriv (._ , () ∷ proj₂)
+
+{-
+The converse of seq-split: two derivations can be appended to a single derivation
+over the composition of the programs.
+-}
+append :
+  ∀ {n k₁ k₂}{s s' s'' : State n}{A B}
+  → ⟨ A , s ⟩ k₁ ⟶ s'
+  → ⟨ B , s' ⟩ k₂ ⟶ s''
+  → ⟨ (A , B) , s ⟩ (k₁ + k₂) ⟶ s''
+append (x stop) p2 = (x ∙) ∷ p2
+append (x ∷ p1) p2 = (x ◄) ∷ append p1 p2
 
 
 -- Correctness of factorial (exactly the same proof as with big-step semantics)

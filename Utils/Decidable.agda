@@ -14,6 +14,13 @@ open import Data.Sum
 open import Function
 import Level as L
 
+{-
+A type class for decidable types.
+
+The part we actually end up using in the formal semantics proofs is
+mostly decidable equality (_≡⁇_).
+-}
+
 _=>_ : ∀ {α β} → Set α → Set β → Set (α L.⊔ β)
 Dict => A = ⦃ _ : Dict ⦄ → A
 infixr 5 _=>_

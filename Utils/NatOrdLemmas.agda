@@ -8,6 +8,8 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Function
 
+{- Just a bunch of lemmas about the standard ordering on naturals -}
+
 data Cmp (a b : ℕ) : Set where
   LT : a Data.Nat.< b → Cmp a b
   EQ : a ≡ b → Cmp a b

@@ -15,6 +15,8 @@ open import Data.List
 
 open Basic.BigStep.Fac
 
+{- Just a sandbox for testing the interpreters in Compiler.Machine -}
+
 fac' : Code 3
 fac' = 𝓒⟦ fac ⟧ˢ 
 

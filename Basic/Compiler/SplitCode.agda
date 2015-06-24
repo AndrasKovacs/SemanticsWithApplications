@@ -13,12 +13,19 @@ open import Data.List hiding ([_])
 open import Relation.Binary.PropositionalEquality
 open import Function
 open import Data.Product
-
 open import Algebra
 import Level as L
 
 private
   module LM {a}{A : Set a} = Algebra.Monoid (Data.List.monoid A)
+
+{-
+Exercise 3.5
+
+This code logically belongs to either Compiler.Code or Compiler.CorrectFrom.
+It has its own module solely because it slows down typechecking for the module
+it's in, which is rather annoying.
+-}
 
 ▷*-split : 
   ∀ {n}{s s' : State n}{e e'} c₁ {c₂}

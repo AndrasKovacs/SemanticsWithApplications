@@ -23,7 +23,7 @@ Third, it was fun (the main reason).
 
 ## 2. Short guide to directories and source files
 
-Below you shall find short notes on the contents of source files. I also include more detailed commentaries in the sources themselves. 
+Below are short notes on the contents of source files. I also include more detailed commentaries in the sources themselves. I recommend reading through the sources in the order I present them below, as I had this order in mind when I wrote the commentaries.
 
 ### Basic
 

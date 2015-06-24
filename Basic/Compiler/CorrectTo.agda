@@ -10,6 +10,16 @@ open import Basic.AST
 open import Basic.BigStep
 open import Utils.Decidable
 
+{-
+Lemma 3.21
+
+One half of the correctness proof for the compiler.
+
+The proof here is a bit neater than the one in the book. The book uses exercises 3.19 and 3.4
+to concatenate instruction lists, while I use my _▷*<>_, which does the same in one step.
+Otherwise the proofs are the same, and there's not much space for variations. 
+-}
+
 𝓒-correct-to :
   ∀ {n}{S : St n}{s s'} 
   → ⟨ S , s ⟩⟱ s' → ⟨ 𝓒⟦ S ⟧ˢ , [] , s ⟩▷*⟨ [] , [] , s' ⟩

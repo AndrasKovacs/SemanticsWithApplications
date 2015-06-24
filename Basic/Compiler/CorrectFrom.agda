@@ -34,8 +34,59 @@ open import Induction.Nat
 open import Induction.WellFounded
 
 
+{-
+Lemma 3.22
+
+This proof caused me considerable headache. First I started to prove it
+by strctural recursion on the to-be-compiled statement, but then Agda complained
+that it was not structurally recursive. And indeed it isn't.
+
+In the "while-true" case, we start with a program derivation of the type:
+
+  ⟨ 𝓒⟦ S ⟧ˢ ++ LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ S ⟧ˢ ∷ [] , [] , s ⟩▷*⟨ [] , e , s' ⟩
+
+And a statement with the following form:
+
+  while b do S 
+
+Then we split this derivation into two parts:
+
+  ⟨ 𝓒⟦ S ⟧ˢ , [] , s ⟩▷*⟨ [] , e'' , s'' ⟩
+  ⟨ LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ S ⟧ˢ ∷ [] , e'' , s'' ⟩▷*⟨ [] , e , s' ⟩
+
+But now if we recurse on the second derivation, the corresponding statement will
+be again "while b do S". Thus Agda will not be able to prove termination.
+
+So I had to use well-founded induction. It is a standard library machinery that
+allows us to do induction on a well-ordered set. Here's an introduction to how
+it works:
+
+http://blog.ezyang.com/2010/06/well-founded-recursion-in-agda/
+
+We usually prefer to not use well-founded recursion, because it demands us proofs
+of decreasing order even on cases where recursion is otherwise evidently structural, and
+it also makes certain proofs rather difficult. 
+-}
+
+
+
 -- Well-foundedness lemmas
 ------------------------------------------------------------
+
+{-
+We do well-founded recursion on the length of derivation sequences.
+But we also have to prove that splitting a derivation sequence will
+never produce empty sequences, or else the lenghts will not be strictly
+decreasing.
+
+To show this, we have to show that
+
+  - compilation into abstract machine code never outputs
+    an empty list of instructions
+    
+  - computation sequences starting with a non-empty instruction list are never empty
+  
+-}
 
 ∷ʳ-nonempty : ∀ {a}{A : Set a}(xs : List A) x → xs ∷ʳ x ≢ []
 ∷ʳ-nonempty [] x ()
@@ -45,6 +96,7 @@ open import Induction.WellFounded
 ++-xs-empty [] p = refl
 ++-xs-empty (x ∷ xs)  ()
 
+{- Compiled statement are non-empty -}
 𝓒ˢ-nonempty : ∀ {n}(S : St n) → 𝓒⟦ S ⟧ˢ ≢ []
 𝓒ˢ-nonempty (x := x₁)             = ∷ʳ-nonempty 𝓒⟦ x₁ ⟧ᵉ (STORE x) 
 𝓒ˢ-nonempty (S , S₁)              = 𝓒ˢ-nonempty S ∘ ++-xs-empty 𝓒⟦ S ⟧ˢ
@@ -52,6 +104,7 @@ open import Induction.WellFounded
 𝓒ˢ-nonempty (while x do S) ()
 𝓒ˢ-nonempty skip ()
 
+{- Compiled expressions are non-empty -}
 𝓒-Exp-nonempty : ∀ {n t} (e : Exp n t) → 𝓒⟦ e ⟧ᵉ ≢ []
 𝓒-Exp-nonempty (add e e₁)     = ∷ʳ-nonempty (𝓒⟦ e₁ ⟧ᵉ <> 𝓒⟦ e ⟧ᵉ) ADD
 𝓒-Exp-nonempty (mul e e₁)     = ∷ʳ-nonempty (𝓒⟦ e₁ ⟧ᵉ <> 𝓒⟦ e ⟧ᵉ) MUL
@@ -66,6 +119,7 @@ open import Induction.WellFounded
 𝓒-Exp-nonempty tt ()
 𝓒-Exp-nonempty ff ()
 
+{-Computations sequences for non-empty code are non-zero length -}
 ▷*-S-nonempty : 
   ∀ {n S}{s s' : State n}{e e'} (p : ⟨ 𝓒⟦ S ⟧ˢ , e , s ⟩▷*⟨ [] , e' , s' ⟩)
   → ▷*-length p ≢ 0
@@ -74,6 +128,7 @@ open import Induction.WellFounded
 ▷*-S-nonempty (() ∷ p) x₁ | ¬empty | []     | [ remember ]
 ▷*-S-nonempty (x₁ ∷ p) () | ¬empty | x ∷ cs | [ remember ]
 
+{- misc ordering lemmas -}
 a<′a+sb : ∀ a b → b ≢ 0 → a <′ a + b
 a<′a+sb a zero x = ⊥-elim (x refl)
 a<′a+sb a (suc b) x rewrite +-comm a (suc b) = ≤⇒≤′ $ a<sb+a a b
@@ -90,6 +145,11 @@ a<′b+sa a (suc b) = ≤′-step (a<′b+sa a b)
 -- Correctness
 ------------------------------------------------------------
 
+
+{-
+This is a shorthand for the actual type of the theorem. We use this because
+otherwise we'd have to write out the type three times in the following code. 
+-}
 𝓒-correct-from-Ty : {_ : ℕ} → ℕ → Set
 𝓒-correct-from-Ty {n} size =
     ∀ {S : St n} {e s s'}
@@ -100,12 +160,32 @@ a<′b+sa a (suc b) = ≤′-step (a<′b+sa a b)
 𝓒-correct-from : ∀ {n} size → 𝓒-correct-from-Ty {n} size
 𝓒-correct-from {n} = <-rec _ go where
 
-  -- -- Assignment
+  {-  
+  Note: we use ▷*-deterministic quite a few times below. We separately use
+  ▷*-split to split the sequence and 𝓒-Exp to establish the contents of the stack
+  after evaluating an expression, but these remain separate facts until we use
+  determinism to prove that the first split sequence and 𝓒-Exp's resulting sequence
+  are the same.
+
+  We see 𝓒-Exp , ▷*-split and ▷*-deterministic chained together several times below.
+  This is admittedly pretty ugly and it would be better to factor out this pattern
+  and possibly include all the relevant information in the output of ▷*-split.
+  -}
+
+  
+  {-
+  "go" is the helper function for well-founded recursion. "<-rec" can be viewed as
+  a sort of a fixpoint operator that demands a proof that the argument strictly decreases
+  on every recursion. "size" is the size argument, and we recurse via the "recurse"
+  argument.
+  -}  
   go : ∀ size → (∀ y → y <′ size → 𝓒-correct-from-Ty {n} y) → 𝓒-correct-from-Ty {n} size
+
+  -- Assignment
   go size recurse {x := exp}{e}{s} p sizeEq 
     with ▷*-split 𝓒⟦ exp ⟧ᵉ p | 𝓒-Exp-nat {e = []}{s = s} exp
   go size recurse {.x := exp} p sizeEq | s₁ , ._ , p1 , STORE x ∷ () ∷ p2 , eqn | exp'
-  go size recurse {.x := exp} p sizeEq | s₁ , ._ , p1 , STORE x ∷ done , eqn | exp' 
+  go size recurse {.x := exp} p sizeEq | s₁ , ._ , p1 , STORE x ∷ done , eqn | exp'
     with ▷*-deterministic p1 exp'
   ... | _ , eqe , eqs 
     rewrite eqs 
@@ -167,7 +247,15 @@ a<′b+sa a (suc b) = ≤′-step (a<′b+sa a b)
        | sym size+eq | sizeEq
     with ⟦ b ⟧ᵉ s | inspect ⟦ b ⟧ᵉ s
 
-  -- while-true (damnit, I want an arithmetic inequality solver)
+  {- Here we the proofs are a bit messed up by the two recursive calls with
+     hideous hand-crafted proofs of size decrease. This is the sort of thing
+     where Coq's solvers and tactics for arithmetic are really handy. Unfortunately
+     we don't yet have those things in Agda, although there is some infrastructure
+     already in place that could be used to create more automatization (like typeclasses
+     and goal reflection)
+   -}     
+     
+  -- while-true
   ... | true  | [ condTrue  ] = 𝓒-while-true condTrue p2 refl
     where
       𝓒-while-true :
@@ -178,7 +266,7 @@ a<′b+sa a (suc b) = ≤′-step (a<′b+sa a b)
         → (⟨ while b do S , s ⟩⟱ s') × e ≡ []
       𝓒-while-true {s}{s'}{b}{e}{S} condTrue p3 ≡len
         with ▷*-split 𝓒⟦ S ⟧ˢ p3
-      ... | s'' , e'' , p1_new , p2_new , size+eq 
+      ... | s'' , e'' , p1_new , p2_new , size+eq
         rewrite sym size+eq 
         with recurse (▷*-length p1_new) 
           (≤′-step 

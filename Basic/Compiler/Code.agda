@@ -20,12 +20,32 @@ open import Relation.Nullary.Decidable
 open import Data.Empty
 open import Algebra
 import Level as L
-
 private
   module LM {a A} = Algebra.Monoid (Data.List.monoid {a} A)
 
--- Types
-------------------------------------------------------------
+{-
+Chapter 3.1 and 3.2. 
+
+Semantics of an abstract machine and specification of the translation from
+While syntax to the abstract machine syntax.
+-}
+
+
+
+
+
+{-
+Definition of the stack and the AM
+
+We follow the book closely here.
+
+"nat-inj" and "bool-inj" just establish injectivity of context entry
+constructors.
+
+That we had to prove this is something of a limitation of the current Agda.
+For example, Coq would derive supply these lemmas automatically. 
+-}
+
 data StackEntry : Set where
   nat  : ℕ → StackEntry
   bool : Bool → StackEntry
@@ -50,7 +70,7 @@ mutual
   Code = List ∘ Inst
 
 
--- Code semantics
+-- Semantics
 ------------------------------------------------------------
 
 data ⟨_,_,_⟩▷⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n → Stack → State n → Set where
@@ -139,6 +159,9 @@ data ⟨_,_,_⟩▷⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n →
 -- Computation sequences
 ------------------------------------------------------------
 
+{-
+The book doesn't give an explicit definition to the constructors, but we have to. 
+-}
 infixr 5 _∷_
 data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n → Stack → State n → Set where
 
@@ -147,6 +170,7 @@ data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n �
     → ---------------------------------
       ⟨ [] , e , s ⟩▷*⟨ [] , e , s ⟩
 
+  {- We define "being stuck" explicitly as a configuration from which no transitions exist -}   
   stuck : 
        ∀ {c cs e s} → (∀ c' e' s' → ¬ ⟨ c ∷ cs , e , s ⟩▷⟨ c' , e' , s' ⟩)
     → ------------------------------------------------------------
@@ -158,14 +182,14 @@ data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n �
     → ------------------------------------------------------------------------
                       ⟨ c , e , s ⟩▷*⟨ c'' , e'' , s'' ⟩
 
-
+{- We will need the length of computation sequences for the compiler correctness proof -} 
 ▷*-length : ∀ {n}{c c' e e'}{s s' : State n} → ⟨ c , e , s ⟩▷*⟨ c' , e' , s' ⟩ → ℕ
 ▷*-length done      = 0
 ▷*-length (stuck x) = 0
 ▷*-length (x ∷ p)   = suc (▷*-length p)
 
 
--- Determinism
+-- Determinism (exercise 3.6)
 ------------------------------------------------------------
 
 ▷-deterministic : 
@@ -203,7 +227,7 @@ data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n �
 ... | eq1 , eq2 , eq3 rewrite eq1 | eq2 | eq3 = ▷*-deterministic p1 p2
 
 
--- Compilation 
+-- Compilation (chapter 3.2)
 ------------------------------------------------------------
 
 𝓒⟦_⟧ᵉ : ∀ {n t} → Exp n t → Code n
@@ -227,6 +251,15 @@ data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n �
 𝓒⟦ if b then st₁ else st₂ ⟧ˢ = 𝓒⟦ b ⟧ᵉ ∷ʳ BRANCH 𝓒⟦ st₁ ⟧ˢ 𝓒⟦ st₂ ⟧ˢ
 𝓒⟦ while b do st          ⟧ˢ = LOOP 𝓒⟦ b ⟧ᵉ 𝓒⟦ st ⟧ˢ ∷ []
 
+
+------------------------------------------------------------
+
+{-
+Some additional lemmas needed to the compiler correctness proofs.
+-}
+
+
+{- A weaker variant of exercise 3.4 -}
 weaken-step-code : 
   ∀ {n}{c c' c'' e e'}{s s' : State n}
   → ⟨ c        , e , s ⟩▷⟨ c'        , e' , s' ⟩
@@ -250,6 +283,11 @@ weaken-step-code {c'' = c''}(LOOP {c₁}{c₂}{c})
   rewrite LM.assoc c₁ (BRANCH (c₂ ∷ʳ LOOP c₁ c₂) (NOOP ∷ []) ∷ c) c'' = LOOP
 weaken-step-code NOOP = NOOP
 
+{-
+This lemma is not in the book, but it's very convenient to use in the following
+proofs. It's just the analogue of Basic.SmallStep.append for the computation
+sequences here. 
+-}
 infixr 5 _▷*<>_
 _▷*<>_ :
   ∀ {n c c' e e' e''}{s s' s'' : State n}
@@ -259,7 +297,7 @@ _▷*<>_ :
 _▷*<>_ done        p2 = p2
 _▷*<>_ (step ∷ p1) p2 = weaken-step-code step ∷ p1 ▷*<> p2
 
-
+{- Lemma 3.18 -}
 𝓒-Exp-nat : 
   ∀ {n e}{s : State n} exp -> ⟨ 𝓒⟦ exp ⟧ᵉ , e , s ⟩▷*⟨ [] , nat (⟦ exp ⟧ᵉ s) ∷ e , s ⟩
 𝓒-Exp-nat (lit x)   = PUSH x ∷ done
@@ -268,6 +306,8 @@ _▷*<>_ (step ∷ p1) p2 = weaken-step-code step ∷ p1 ▷*<> p2
 𝓒-Exp-nat (sub a b) = (𝓒-Exp-nat b ▷*<> 𝓒-Exp-nat a) ▷*<> (SUB _ _ ∷ done)
 𝓒-Exp-nat (var x)   = FETCH x ∷ done
 
+
+{- Lemma 3.19 -}
 𝓒-Exp-bool :
   ∀ {n e}{s : State n} exp -> ⟨ 𝓒⟦ exp ⟧ᵉ , e , s ⟩▷*⟨ [] , bool (⟦ exp ⟧ᵉ s) ∷ e , s ⟩
 𝓒-Exp-bool tt            = TRUE ∷ done
@@ -278,8 +318,14 @@ _▷*<>_ (step ∷ p1) p2 = weaken-step-code step ∷ p1 ▷*<> p2
 𝓒-Exp-bool (Exp.and a b) = (𝓒-Exp-bool b ▷*<> 𝓒-Exp-bool a) ▷*<> AND _ _ ∷ done
 𝓒-Exp-bool (not e)       = 𝓒-Exp-bool  e ▷*<> NOT _ ∷ done
 
--- getting rid of the (<> []) at the end of a branch
--- (if there isn't code after the branch)
+
+{-
+A "smart constructor" that gets rid of the trailing (++[]) at the end of the branch.
+This is not mentioned in the book, because it (rightfully) assumes that appendding an
+empty list to the end of a list results in the same list, while here we have to make
+this property explicit
+-}
+
 BRANCH-[] : 
   ∀ {n c₁ c₂ e t}{s : State n} → let c' = ifBool t then c₁ else c₂ in
   ⟨ BRANCH c₁ c₂ ∷ [] , bool t ∷ e , s ⟩▷⟨ c' , e , s ⟩
