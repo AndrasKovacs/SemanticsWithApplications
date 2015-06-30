@@ -172,11 +172,11 @@ complete (if b then S else S₁){P}{Q} f =
         go2 (pb , ps) | s' , if-false pb' run , qs' = s' , run , qs'
         
 {-
-This is the interesting part. It required quite a bit of thinking on my part to get this right.
+This is the interesting part. I needed to do quite a bit of thinking to get this right.
 
 So, we'd like to construct a proof of total corectness given the validity of a Hoare triple.
 
-We're much less constrained here than in pretty much all the other proofs, because our objective
+We're much less constrained here than in pretty much all of the other proofs, because our objective
 is to construct a suitable P *predicate* for the loop body. Recall the axiom for "while"
 
   while : 
@@ -195,7 +195,7 @@ complete {n}(while b do S){P}{Q} f = cons pre-loop loop post-loop
     P must decrease on each iteration, and P 0 must imply that the loop has finished, and
     P (suc n) must imply that the loop's still running.
     
-    The only sensible choice for the decreasing loop variant here is the length of the derivation
+    The only sensible choice for the decreasing loop variant is the length of the derivation
     of the loop:
     -}
     
