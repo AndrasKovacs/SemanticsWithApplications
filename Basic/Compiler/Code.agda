@@ -42,8 +42,8 @@ We follow the book closely here.
 "nat-inj" and "bool-inj" just establish injectivity of context entry
 constructors.
 
-That we had to prove this is something of a limitation of the current Agda.
-For example, Coq would derive supply these lemmas automatically. 
+That we have to prove them is something of a limitation of the current Agda.
+In contrast, Coq derives injectivity of constructors automatically.
 -}
 
 data StackEntry : Set where
@@ -159,9 +159,6 @@ data ⟨_,_,_⟩▷⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n →
 -- Computation sequences
 ------------------------------------------------------------
 
-{-
-The book doesn't give an explicit definition to the constructors, but we have to. 
--}
 infixr 5 _∷_
 data ⟨_,_,_⟩▷*⟨_,_,_⟩ {n} : Code n → Stack → State n → Code n → Stack → State n → Set where
 
