@@ -27,8 +27,7 @@ the same assertion language to extend the object language in other ways.
 The book uses the extensional approach, and so do we. We go a bit further than the book though:
 the book has boolean predicates over the program state, while we have type theoretic
 "(State n → Set)" predicates. This means that our predicates can be proof-relevant and contain data,
-so predicates can express computations and transformations on states, not just the truth or falsity
-of a property.
+so they can express computations and transformations on states.
 
 However, the higher-order nature of the "(State n → Set)" representation of predicates also makes
 type inference quite hard. I attepmeted to do some correctness proofs with the Hoare logics, and
@@ -37,9 +36,8 @@ make it convenient enough.
 
 It's interesting to note that manual proof-writing is generally easier with Hoare logics than with
 raw semantics, but here in Agda it's the opposite: the proofs in raw semantics (see e. g. the
-factorial proofs in Basic.SmallStep, Basic.BigStep and Extended.FunRetRec) are pretty neat, and it's
-pretty convenient, since Agda keeps track of the program state for us and hides lots of unnecessary
-details.
+factorial proofs in Basic.SmallStep, Basic.BigStep and Extended.FunRetRec) are pretty neat convenient, 
+since Agda keeps track of the program state for us and hides lots of unnecessary details.
 
 Side note: we could have made our definition universe polymorphic. It would be a trivial extension;
 the reason we don't have it is that we don't need that much power of expression for any of our proofs.
@@ -158,7 +156,7 @@ wlp S Q s = ∀ {s'} → ⟨ S , s ⟩⟱ s' → Q s'
 
 {-
 This proof is the same as in the book, because it's rather simple and there's not
-much choice
+much choice.
 -}
 
 sound : ∀ {n}{S : St n}{P Q} → 〈 P 〉 S 〈 Q 〉 → (P ==> wlp S Q)
