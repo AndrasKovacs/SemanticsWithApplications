@@ -31,7 +31,7 @@ data Ty : Set where
 
 {-
 Interpretation of types into Agda sets.
-Note that we use natural numbers instead of integers; since naturals are
+Note that we use natural numbers instead of integers, since naturals are
 much simpler to handle in formal contexts (also, there's not enough Agda library
 support for integers).
 -}
@@ -45,8 +45,8 @@ This is a point where we make a departure from the book. The book defines states
 
 State = String → ℕ
 
-This is supposed to be a total funuction, and he book doesn't concern itself with scope
-errors or shadowing. But we certainly have to concern ourselves in Agda.
+This is supposed to be a total funuction, and the book doesn't concern itself with scope
+errors or shadowing, but we certainly have to do so in Agda.
 
 So we opt for de Bruijn indices as variables and a finite vector as State. These are as
 simple to handle as it can get, and we also get alpha equality of programs for free.
@@ -61,7 +61,7 @@ State = Vec ℕ
 {-
 In the book there's a mutual definition of boolean and numeric expressions.
 We instead have a single universe-indexed type family. It's more convenient, and
-it's also actually equivalent to the mutual definition (it's a standard Agda/Haskell trick
+it's also equivalent to the mutual definition (it's a standard Agda/Haskell trick
 to encode multiple types data as a single indexed type). 
 -}
 data Exp (n : ℕ) : Ty → Set where
@@ -76,7 +76,7 @@ data Exp (n : ℕ) : Ty → Set where
   
 {-
 Statements are parameterized by the size of the State they operate on. Since the
-vanilla "While" language has no declarations or other features that might change change
+vanilla "While" language has no declarations or other features that might change
 the size of the state, we are fine with this. It also allows us to use finite numbers
 as de Bruijn indices.
 -}
