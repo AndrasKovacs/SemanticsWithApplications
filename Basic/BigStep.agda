@@ -23,13 +23,13 @@ open import Basic.AST
 The big-step semantics of the while language. It's chapter 2.1 in the book. 
 
 Note that we use a {n : ℕ} parameter to fix the size of the program state over
-our derivations. This is fine since we don't have and derivation rule that
+our derivations. This is fine since we don't have any derivation rule that
 changes the size of the state.
 
 The definitions themselves should come as no surprise to readers of the book.
 
 I employ some syntactic shenanigans to make the definitions visually similar to the familiar
-sequent/natural calculus notation (I stole the formatting style from Conor McBride). 
+sequent/natural calculus notation (I borrow the formatting style from Conor McBride). 
 -}
 
 infixr 4 _,_
@@ -53,7 +53,7 @@ data ⟨_,_⟩⟱_ {n : ℕ} : St n → State n → State n → Set where
              ⟨ (S₁ , S₂ ) , s₁ ⟩⟱ s₃           
 
   {- The "T" in "T (⟦ b ⟧ᵉ s)" can be found in Data.Bool.Base. It's ⊤ on a true argument
-     and ⊥ on a false argument, so it just lifts boolean values to irrelevant proofs.
+     and ⊥ on a false argument, so it just lifts boolean values to proofs.
      "F" works the same way, except it's provable on a false argument -}
   
   if-true :
@@ -86,9 +86,9 @@ Example program and program derivation below.
 Note the magnificient de Bruijn variables.
 
 Program derivations are really slow to typecheck.
-Daring souls may want to uncomment it and give it a try.
-But other than that, we may should that the derivations look pretty clean and concise;
-there's a lot of details that Agda's inference can fill in for us. 
+Brave souls may want to uncomment it and give it a try.
+But other than that, we may should that the derivations look pretty clean and concise.
+There's lots of details that Agda's inference can fill in for us. 
 
 -}
 private
@@ -189,7 +189,7 @@ derivation for a loop that goes on for one more iteration, because it has
 a higher bound in the condition.
 
 However, if we start out with a loop index that is already greater then the
-loop bound, we get divergence. But just having a loop derivation as hypothesis
+loop bound, we get divergence. But just having a derivation as hypothesis
 rules out divergence! We can show this to Agda by proving the divergence in that
 case and getting a contradiction.
 -}
