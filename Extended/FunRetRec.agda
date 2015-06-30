@@ -87,7 +87,7 @@ data Entry : Set where
   nat : ℕ → Entry
   fun : List String → St → Entry
 
-{- The environment is now keyed by string (rather than de Bruijn indices) -}
+{- The environment is now keyed by strings (rather than de Bruijn indices) -}
 Env : Set
 Env = List (String × Entry)
 
@@ -105,8 +105,7 @@ states in big-step semantics. With more complicated derivation rules and many
 types of non-local effects (and of course non-determinism), small-step semantics
 seems to be more manageable.
 
-But here we have just the return statement, so we are fine with an extra state
-and big-step semantics.
+But here we have just the return statement, so big-step semantics seems fine.
 -}
 
 data State : Set where
@@ -131,7 +130,7 @@ with explicit proofs for them.
 A standard Agda solution for this is to use so-called irrelevant proofs. Such
 types have at most a single value up to definitional equality, therefore they
 cannot influence actual computation. Agda is willing to automatically fill in
-the value for these types once it becomes apparent that the value exists.
+the value for some of these types once it becomes apparent that the value exists.
 
 The simplest example of a irrelevant type is the unit type.
 
