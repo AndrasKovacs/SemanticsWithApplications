@@ -182,7 +182,7 @@ deterministic = go where
 
 {-
 Below is a proof that is not contained in the book. I did it to familiarize myself
-with style of proving in this semantics.
+with the style of proving in this semantics.
 
 It proves that if we have a derivation for a loop, then we can construct a
 derivation for a loop that goes on for one more iteration, because it has
@@ -236,7 +236,8 @@ Our job here is to prove that the factorial program computes a factorial. But in
 be able to state this property, we had to define the notion of factorial in Agda. But this
 Agda ⟦fac⟧ function is already executable! Luckily for us, Agda and Coq and co. already
 have computational meaning. So if our goal is to simply have a correct factorial program,
-then we should just write in in Agda or Coq.
+then we should just write it in Agda or Coq (although neither supports software development
+in an acceptable manner, unfortunately). 
 
 Some languages are just better as metalanguages, but if those metalanguages are also
 satisfactory as object languages then we might make do with just a single
